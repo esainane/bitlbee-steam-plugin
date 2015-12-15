@@ -208,8 +208,10 @@ static void steam_user_msg(SteamData *sata, SteamUserMsg *msg, gint64 time)
     switch (msg->type) {
     case STEAM_USER_MSG_TYPE_MY_EMOTE:
     case STEAM_USER_MSG_TYPE_MY_SAYTEXT:
+#if 0
         if (set_find(&sata->ic->bee->set, "self_messages") == NULL)
             return;
+#endif
 
         if (msg->type == STEAM_USER_MSG_TYPE_MY_EMOTE)
             str = g_strconcat("/me ", msg->text, NULL);
@@ -687,14 +689,14 @@ static void steam_cb_user_search(SteamApiReq *req, gpointer data)
  * turns the account on as soon a value is set if it is not already
  * turned on.
  *
- * @param set   The #set_t.
+ * @param set   The #account_t data.
  * @param value The set value.
  *
  * @return The resulting set value.
  **/
-static char *steam_eval_accounton(set_t *set, char *value)
+static char *steam_eval_accounton(void *data, char *value)
 {
-    account_t *acc = set->data;
+    account_t *acc = data;
 
     if ((acc->ic != NULL) && (acc->ic->flags & BEE_USER_ONLINE))
         return value;
@@ -715,14 +717,14 @@ static char *steam_eval_accounton(set_t *set, char *value)
 /**
  * Implemented #set_eval for the set of game_status.
  *
- * @param set   The #set_t.
+ * @param set   The #account_t data.
  * @param value The set value.
  *
  * @return The resulting set value.
  **/
-static char *steam_eval_game_status(set_t *set, char *value)
+static char *steam_eval_game_status(void *data, char *value)
 {
-    account_t *acc = set->data;
+    account_t *acc = data;
     SteamData *sata;
 
     if (!is_bool(value))
@@ -742,14 +744,14 @@ static char *steam_eval_game_status(set_t *set, char *value)
  * this disables the account, and resets the token. Then the plugin
  * will force the authentication process with the new password.
  *
- * @param set   The #set_t.
+ * @param set   The #account_t data.
  * @param value The set value.
  *
  * @return The resulting set value.
  **/
-static char *steam_eval_password(set_t *set, char *value)
+static char *steam_eval_password(void *data, char *value)
 {
-    account_t *acc = set->data;
+    account_t *acc = data;
 
     value = set_eval_account(set, value);
     set_reset(&acc->set, "token");
@@ -771,28 +773,19 @@ static char *steam_eval_password(set_t *set, char *value)
  **/
 static void steam_init(account_t *acc)
 {
-    set_t *s;
+    set_add_with_flags(&acc->set, "authcode", NULL, steam_eval_accounton, acc, SET_NULL_OK | SET_HIDDEN | SET_NOSAVE);
 
-    s = set_add(&acc->set, "authcode", NULL, steam_eval_accounton, acc);
-    s->flags = SET_NULL_OK | SET_HIDDEN | SET_NOSAVE;
+    set_add_with_flags(&acc->set, "captcha", NULL, steam_eval_accounton, acc, SET_NULL_OK | SET_HIDDEN | SET_NOSAVE);
 
-    s = set_add(&acc->set, "captcha", NULL, steam_eval_accounton, acc);
-    s->flags = SET_NULL_OK | SET_HIDDEN | SET_NOSAVE;
+    set_add_with_flags(&acc->set, "esid", NULL, NULL, acc, SET_NULL_OK | SET_HIDDEN | SET_NOSAVE);
 
-    s = set_add(&acc->set, "esid", NULL, NULL, acc);
-    s->flags = SET_NULL_OK | SET_HIDDEN | SET_NOSAVE;
+    set_add_with_flags(&acc->set, "cgid", NULL, NULL, acc, SET_NULL_OK | SET_HIDDEN | SET_NOSAVE);
 
-    s = set_add(&acc->set, "cgid", NULL, NULL, acc);
-    s->flags = SET_NULL_OK | SET_HIDDEN | SET_NOSAVE;
+    set_add_with_flags(&acc->set, "umqid", NULL, NULL, acc, SET_NULL_OK | SET_HIDDEN);
 
-    s = set_add(&acc->set, "umqid", NULL, NULL, acc);
-    s->flags = SET_NULL_OK | SET_HIDDEN;
+    set_add_with_flags(&acc->set, "token", NULL, NULL, acc, SET_NULL_OK | SET_HIDDEN | SET_PASSWORD);
 
-    s = set_add(&acc->set, "token", NULL, NULL, acc);
-    s->flags = SET_NULL_OK | SET_HIDDEN | SET_PASSWORD;
-
-    s = set_add(&acc->set, "sessid", NULL, NULL, acc);
-    s->flags = SET_NULL_OK | SET_HIDDEN | SET_PASSWORD;
+    set_add_with_flags(&acc->set, "sessid", NULL, NULL, acc, SET_NULL_OK | SET_HIDDEN | SET_PASSWORD);
 
     set_add(&acc->set, "game_status", "false", steam_eval_game_status, acc);
     set_add(&acc->set, "password", NULL, steam_eval_password, acc);

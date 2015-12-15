@@ -99,3 +99,6 @@ AS_IF(
 AC_CONFIG_FILES([Makefile steam/Makefile])
 AC_SUBST([plugindir])
 AC_OUTPUT
+
+LT_INIT()
+

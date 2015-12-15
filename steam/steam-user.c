@@ -63,6 +63,7 @@ void steam_user_free(SteamUser *user)
  **/
 void steam_user_chans_msg(SteamUser *user, const gchar *format, ...)
 {
+  #if 0
     irc_channel_t *ic;
     irc_user_t    *iu;
     va_list        ap;
@@ -86,6 +87,7 @@ void steam_user_chans_msg(SteamUser *user, const gchar *format, ...)
     }
 
     g_free(str);
+  #endif
 }
 
 /**
