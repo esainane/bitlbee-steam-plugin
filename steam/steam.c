@@ -702,15 +702,15 @@ static char *steam_eval_accounton(void *data, char *value)
         return value;
 
     /* Some hackery to auto connect upon authcode entry */
-
-    g_free(set->value);
-    set->value = g_strdup(value);
+#if 0
+    g_free(acc->set->value);
+    acc->set->value = g_strdup(value);
 
     account_on(acc->bee, acc);
 
-    g_free(set->value);
-    set->value = NULL;
-
+    g_free(acc->set->value);
+    acc->set->value = NULL;
+#endif
     return value;
 }
 
@@ -753,7 +753,7 @@ static char *steam_eval_password(void *data, char *value)
 {
     account_t *acc = data;
 
-    value = set_eval_account(set, value);
+    value = set_eval_account(&acc->set, value);
     set_reset(&acc->set, "token");
 
     if (acc->ic != NULL) {
