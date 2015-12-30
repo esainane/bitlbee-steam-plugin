@@ -753,7 +753,7 @@ static char *steam_eval_password(void *data, char *value)
 {
     account_t *acc = data;
 
-    value = set_eval_account(&acc->set, value);
+    value = set_eval_account(acc->set, value);
     set_reset(&acc->set, "token");
 
     if (acc->ic != NULL) {
